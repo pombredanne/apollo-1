@@ -1,4 +1,5 @@
 
+import logging; logger = logging.getLogger(__name__)
 from urllib2 import HTTPBasicAuthHandler, build_opener
 from credservice.utils import call_periodic
 import json
@@ -94,26 +95,34 @@ class ApolloMonitor(object):
     def on_queue_init(self, queue):
         """MAY override: called after the ApolloMonitor is initializing and
            loading in the initial queue status"""
-        pass
+        logger.info('on_queue_init( "%s" )' % queue['id'])
+        logger.debug('on_queue_init( %s )' % repr(queue))
 
     def on_queue_new(self, queue):
         """MAY override: called before a new queue is added to the status
            dictionary"""
-        pass
+        logger.info('on_queue_new( "%s" )' % queue['id'])
+        logger.debug('on_queue_new( %s )' % repr(queue))
 
     def on_queue_update(self, old_queue, new_queue):
         """MAY override: called before a queue is updated in the status
            dictionary. Overrides MUST call the super of this event handler so
            that on_queue_empty events may be fired."""
+        logger.info('on_queue_update( "%s", ... ): %d items'
+                    % (old_queue['id'], old_queue['metrics']['queue_items']))
+        logger.debug('on_queue_update( %s, %s )'
+                    % (repr(old_queue), repr(new_queue)))
         if old_queue['metrics']['queue_items'] > 0 and new_queue['metrics']['queue_items'] == 0:
             self.on_queue_empty(new_queue)
 
     def on_queue_empty(self, queue):
         """MAY override: called before a queue is update in the status
            dictionary when the queue is newly empty."""
-        pass
+        logger.info('on_queue_empty( "%s" )' % queue['id'])
+        logger.debug('on_queue_empty( %s )' % repr(queue))
 
     def on_queue_delete(self, old_queue):
         """MAY override: called before a queue is deleted from the status
            dictionary"""
-        pass
+        logger.info('on_queue_delete( "%s" )' % old_queue['id'])
+        logger.debug('on_queue_delete( %s )' % repr(old_queue))
