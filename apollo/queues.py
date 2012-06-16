@@ -1,5 +1,6 @@
 
 from urllib2 import HTTPBasicAuthHandler, build_opener
+from credservice.utils import call_periodic
 import json
 
 class ApolloMonitor(object):
@@ -24,6 +25,9 @@ class ApolloMonitor(object):
         self.queues = self._structure_queue_data(self._get_queue_data())
         for queue in self.queues.values():
             self.on_queue_init(queue)
+
+        # Run updates in a loop
+        call_periodic(update_interval_s, self.do_update)
 
     def _get_queue_data(self):
         """Return a parsed structure containing the current queue data"""
@@ -81,6 +85,11 @@ class ApolloMonitor(object):
             # Report the removal
             self.on_queue_remove(self.queues[q_id])
             self.queues.pop(q_id)
+
+    def do_update(self):
+        """Download new queue data and send update notifications"""
+        new_queues = self._structure_queue_data(self._get_queue_data())
+        self._detect_queue_changes(new_queues)
 
     def on_queue_init(self, queue):
         """MAY override: called after the ApolloMonitor is initializing and
