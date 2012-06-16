@@ -66,8 +66,8 @@ class ApolloMonitor(object):
         old_queues = set(self.queues.keys())
 
         # Iterate over new_queues
-        for queue in new_queues:
-            q_id = queue['id']
+        for q_id in new_queues:
+            queue = new_queues[q_id]
 
             # Detect a modified queue
             if q_id in old_queues:
