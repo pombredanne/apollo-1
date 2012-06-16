@@ -83,7 +83,7 @@ class ApolloMonitor(object):
         # Delete old queues
         for q_id in old_queues:
             # Report the removal
-            self.on_queue_remove(self.queues[q_id])
+            self.on_queue_delete(self.queues[q_id])
             self.queues.pop(q_id)
 
     def do_update(self):
