@@ -38,8 +38,8 @@ class ApolloMonitor(object):
 
             # Get the JSON-formatted data
             queues_raw = None
-            with self._url_opener.urlopen(url) as json_file:
-                queues_raw = json.load(json_file)
+            json_file = self._url_opener.open(url)
+            queues_raw = json.load(json_file)
 
             # Extract the new page size and row counts
             page_size = queues_raw['page_size']
