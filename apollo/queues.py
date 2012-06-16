@@ -105,7 +105,7 @@ class ApolloMonitor(object):
         """MAY override: called before a queue is updated in the status
            dictionary. Overrides MUST call the super of this event handler so
            that on_queue_empty events may be fired."""
-        if old_queue['queue_items'] > 0 and new_queue['queue_items'] == 0:
+        if old_queue['metrics']['queue_items'] > 0 and new_queue['metrics']['queue_items'] == 0:
             self.on_queue_empty(new_queue)
 
     def on_queue_empty(self, new_queue):
