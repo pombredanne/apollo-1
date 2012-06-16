@@ -108,7 +108,7 @@ class ApolloMonitor(object):
         if old_queue['metrics']['queue_items'] > 0 and new_queue['metrics']['queue_items'] == 0:
             self.on_queue_empty(new_queue)
 
-    def on_queue_empty(self, new_queue):
+    def on_queue_empty(self, queue):
         """MAY override: called before a queue is update in the status
            dictionary when the queue is newly empty."""
         pass
