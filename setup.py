@@ -11,4 +11,8 @@ setup(
     platforms = ["any"],
     description = "A library for monitoring queues from an Apache Apollo message broker",
     packages=find_packages(),
+    entry_points={
+        'console_scripts':
+        ['apollo-monitor = apollo.cli:start_monitor',
+        ]},
 )
