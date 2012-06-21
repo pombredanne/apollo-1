@@ -10,6 +10,13 @@ from syncstomp import Connection, add_argparse_group, syncstomp_from_args
 from .queues import ApolloMonitor
 from gevent import sleep
 
+# Declare a class for inspecting queue records cleanly
+import pprint
+class PrettyMonitor(ApolloMonitor):
+    def on_queue_init(self, queue):
+        super(PrettyMonitor,self).on_queue_init(queue)
+        pprint.pprint(queue,indent=1)
+
 def start_monitor():
     # Prepare the argument parser
     parser = ArgumentParser(version='ApolloMonitor 0.1')
@@ -41,7 +48,7 @@ def start_monitor():
 
     # Construct the monitor
     host, port = host_and_ports[0]
-    monitor = ApolloMonitor(host=host,
+    monitor = PrettyMonitor(host=host,
                             port=port,
                             virtual_host=virtual_host,
                             username=apollo_cred['username'],
