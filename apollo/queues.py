@@ -63,6 +63,9 @@ class ApolloMonitor(object):
     def _detect_queue_changes(self, new_queues):
         """Fire events for handling new, updated, and deleted queues"""
 
+        # We will send a blank logging message if there is at least one event
+        any_events = False
+
         # Keep a list of the old queues
         old_queues = set(self.queues.keys())
 
@@ -75,9 +78,11 @@ class ApolloMonitor(object):
                 # Report the update
                 self.on_queue_update(self.queues[q_id], queue)
                 old_queues.remove(q_id)
+                any_events |= True
             else:
                 # Report the new queue
                 self.on_queue_new(queue)
+                any_events |= True
 
             self.queues[q_id] = queue
 
@@ -86,6 +91,12 @@ class ApolloMonitor(object):
             # Report the removal
             self.on_queue_delete(self.queues[q_id])
             self.queues.pop(q_id)
+            any_events |= True
+
+        # Send a blank logging message if there were any events
+        # (This causes logging output to appear in stanzas)
+        if any_events:
+            logger.info('')
 
     def do_update(self):
         """Download new queue data and send update notifications"""
