@@ -123,7 +123,13 @@ class ApolloMonitor(object):
                     % (old_queue['id'], old_queue['metrics']['queue_items']))
         logger.debug('on_queue_update( %s, %s )'
                     % (repr(old_queue), repr(new_queue)))
-        if old_queue['metrics']['queue_items'] > 0 and new_queue['metrics']['queue_items'] == 0:
+
+        # if the queue is now empty, and something has been dequeued since
+        # the last queue update, then it qualifies as "this is now empty"
+        if ((new_queue['metrics']['queue_items'] == 0) and
+            (old_queue['metrics']['dequeue_item_counter'] !=
+             new_queue['metrics']['dequeue_item_counter']
+             )):
             self.on_queue_empty(new_queue)
 
     def on_queue_empty(self, queue):
