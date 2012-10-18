@@ -96,7 +96,7 @@ class ApolloMonitor(object):
         # Send a blank logging message if there were any events
         # (This causes logging output to appear in stanzas)
         if any_events:
-            logger.info('')
+            logger.debug('')
 
     def do_update(self):
         """Download new queue data and send update notifications"""
@@ -106,23 +106,23 @@ class ApolloMonitor(object):
     def on_queue_init(self, queue):
         """MAY override: called after the ApolloMonitor is initializing and
            loading in the initial queue status"""
-        logger.info('on_queue_init( "%s" )' % queue['id'])
-        logger.debug('on_queue_init( %s )' % repr(queue))
+        logger.debug('on_queue_init( "%s" )' % queue['id'])
+        # logger.debug('on_queue_init( %s )' % repr(queue))
 
     def on_queue_new(self, queue):
         """MAY override: called before a new queue is added to the status
            dictionary"""
-        logger.info('on_queue_new( "%s" )' % queue['id'])
-        logger.debug('on_queue_new( %s )' % repr(queue))
+        logger.debug('on_queue_new( "%s" )' % queue['id'])
+        # logger.debug('on_queue_new( %s )' % repr(queue))
 
     def on_queue_update(self, old_queue, new_queue):
         """MAY override: called before a queue is updated in the status
            dictionary. Overrides MUST call the super of this event handler so
            that on_queue_empty events may be fired."""
-        logger.info('on_queue_update( "%s", ... ): %d items'
-                    % (old_queue['id'], old_queue['metrics']['queue_items']))
-        logger.debug('on_queue_update( %s, %s )'
-                    % (repr(old_queue), repr(new_queue)))
+        logger.debug('on_queue_update( "%s", ... ): %d items'
+                     % (old_queue['id'], old_queue['metrics']['queue_items']))
+        # logger.debug('on_queue_update( %s, %s )'
+        #              % (repr(old_queue), repr(new_queue)))
 
         # if the queue is now empty, and something has been dequeued since
         # the last queue update, then it qualifies as "this is now empty"
@@ -135,11 +135,11 @@ class ApolloMonitor(object):
     def on_queue_empty(self, queue):
         """MAY override: called before a queue is update in the status
            dictionary when the queue is newly empty."""
-        logger.info('on_queue_empty( "%s" )' % queue['id'])
-        logger.debug('on_queue_empty( %s )' % repr(queue))
+        logger.debug('on_queue_empty( "%s" )' % queue['id'])
+        # logger.debug('on_queue_empty( %s )' % repr(queue))
 
     def on_queue_delete(self, old_queue):
         """MAY override: called before a queue is deleted from the status
            dictionary"""
-        logger.info('on_queue_delete( "%s" )' % old_queue['id'])
-        logger.debug('on_queue_delete( %s )' % repr(old_queue))
+        logger.debug('on_queue_delete( "%s" )' % old_queue['id'])
+        # logger.debug('on_queue_delete( %s )' % repr(old_queue))
