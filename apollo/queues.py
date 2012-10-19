@@ -1,8 +1,10 @@
 
 import logging; logger = logging.getLogger(__name__)
-from urllib2 import HTTPBasicAuthHandler, build_opener
+import requests
 from credservice.utils import call_periodic
-import json
+
+# We don't need to see the queue update every five seconds.
+logging.getLogger('requests').setLevel(logging.WARN)
 
 class ApolloMonitor(object):
     """Class for monitoring an Apache Apollo server"""
@@ -14,13 +16,11 @@ class ApolloMonitor(object):
            $username and $password.  Monitor for update events every
            $update_interval_s seconds."""
         # Prepare a URL opener
-        auth_handler = HTTPBasicAuthHandler()
-        auth_handler.add_password(realm=realm,
-                                  uri='http://%s:%d/broker' % (host, port),
-                                  user=username,
-                                  passwd=password)
-        self._url_opener = build_opener(auth_handler)
-        self._url_queues = 'http://%s:%d/broker/virtual-hosts/%s/queues.json' % (host, port, virtual_host)
+        self.auth = (username, password)
+        self._url_queues = ('http://%s:%d/broker/virtual-hosts/%s/queues.json'
+                            % (host, port, virtual_host))
+        self._url_delete = ('http://%s:%d/broker/virtual-hosts/%s/queues/'
+                            '%%s.json' % (host, port, virtual_host))
 
         # Initialize the queue status dictionary
         self.queues = self._structure_queue_data(self._get_queue_data())
@@ -35,23 +35,20 @@ class ApolloMonitor(object):
         # Repeat until a full download is accomplished
         page_size = -1
         total_rows = 0
-        queues_raw = None
         while page_size < total_rows:
             # Determine the new page size
             page_size = total_rows + 1000
             url = self._url_queues + ('?ps=%d' % page_size)
 
             # Get the JSON-formatted data
-            queues_raw = None
-            json_file = self._url_opener.open(url)
-            queues_raw = json.load(json_file)
+            queues = requests.get(url, auth=self.auth).json
 
             # Extract the new page size and row counts
-            page_size = queues_raw['page_size']
-            total_rows = queues_raw['total_rows']
+            page_size = queues['page_size']
+            total_rows = queues['total_rows']
 
         # Operation Complete!
-        return queues_raw['rows']
+        return queues['rows']
 
     def _structure_queue_data(self, queues, exclude_temp=True):
         """Construct a dictionary mapping destination names to a queue data
@@ -143,3 +140,12 @@ class ApolloMonitor(object):
            dictionary"""
         logger.debug('on_queue_delete( "%s" )' % old_queue['id'])
         # logger.debug('on_queue_delete( %s )' % repr(old_queue))
+
+    def delete_queue(self, queue):
+        """
+        Delete a given queue. Returns the status code of the request (likely
+        either 204 on success or 404 if the queue doesn't exist).
+        """
+        # Quote properly, or will this suffice?
+        queue = queue.replace('%', '%25')
+        requests.delete(self._url_delete % queue, auth=self.auth)
