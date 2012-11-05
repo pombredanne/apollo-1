@@ -2,6 +2,7 @@
 import logging; logger = logging.getLogger(__name__)
 import requests
 from credservice.utils import call_periodic
+from gevent.event import Event
 
 # We don't need to see the queue update every five seconds.
 logging.getLogger('requests').setLevel(logging.WARN)
@@ -26,6 +27,10 @@ class ApolloMonitor(object):
         self.queues = self._structure_queue_data(self._get_queue_data())
         for queue in self.queues.values():
             self.on_queue_init(queue)
+
+        # Initialize the update wait event
+        self.update_event = Event()
+        self.update_event.clear()
 
         # Run updates in a loop
         call_periodic(update_interval_s, self.do_update)
@@ -100,6 +105,10 @@ class ApolloMonitor(object):
         new_queues = self._structure_queue_data(self._get_queue_data())
         self._detect_queue_changes(new_queues)
 
+        # Report update event to blockers
+        self.update_event.set()
+        self.update_event.clear()
+
     def on_queue_init(self, queue):
         """MAY override: called after the ApolloMonitor is initializing and
            loading in the initial queue status"""
@@ -149,3 +158,10 @@ class ApolloMonitor(object):
         # Quote properly, or will this suffice?
         queue = queue.replace('%', '%25')
         requests.delete(self._url_delete % queue, auth=self.auth)
+
+    def wait_for_update(self, n=1):
+        """
+        Wait for n updates to be fetched and sent through event handlers
+        """
+        for it in xrange(n):
+            self.update_event.wait()
