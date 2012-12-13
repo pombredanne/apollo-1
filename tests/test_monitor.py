@@ -50,6 +50,9 @@ class MonitorWithEvents(ApolloMonitor):
 def setup():
     global MONITOR, STOMP, QUEUE
 
+    # TODO: this should presumably be tested on ferret, not njord,
+    #   but the ManagedConnection doesn't want to connect.
+
 #    host_and_ports = find_service('_apollo_adm._tcp', zone=None)
 #    virtual_host = find_text('_apollo_vhost', zone=None)
 #    host, port = host_and_ports[0]
