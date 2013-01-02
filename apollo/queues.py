@@ -47,7 +47,9 @@ class ApolloMonitor(object):
 
             # Get the JSON-formatted data
             queues = requests.get(url, auth=self.auth).json
-
+            if callable(queues):
+                queues = queues()
+            
             # Extract the new page size and row counts
             page_size = queues['page_size']
             total_rows = queues['total_rows']
