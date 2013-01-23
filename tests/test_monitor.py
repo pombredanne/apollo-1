@@ -1,4 +1,4 @@
-from gevent import monkey; monkey.patch_all(aggressive=False)
+from gevent import monkey; monkey.patch_all()
 import os
 from collections import namedtuple
 #from plumb_util import find_service, find_text
@@ -39,7 +39,12 @@ class MonitorWithEvents(ApolloMonitor):
         self._func('on_queue_new', *args, **kwargs)
 
     def on_queue_update(self, *args, **kwargs):
+#        print 'in on_queue_udpate'
         self._func('on_queue_update', *args, **kwargs)
+#        if args[0]['id']==QUEUE:
+#            print 'added to history:', [x.name for x in self._history]
+#        super(MonitorWithEvents, self).on_queue_update(*args, **kwargs) #?
+#        print 'called super'
 
     def on_queue_empty(self, *args, **kwargs):
         self._func('on_queue_empty', *args, **kwargs)

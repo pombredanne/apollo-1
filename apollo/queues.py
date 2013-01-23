@@ -18,10 +18,10 @@ class ApolloMonitor(object):
            $update_interval_s seconds."""
         # Prepare a URL opener
         self.auth = (username, password)
-        self._url_queues = ('http://%s:%d/broker/virtual-hosts/%s/queues.json'
-                            % (host, port, virtual_host))
-        self._url_delete = ('http://%s:%d/broker/virtual-hosts/%s/queues/'
-                            '%%s.json' % (host, port, virtual_host))
+        self._url = ('http://%s:%d/broker/virtual-hosts/%s'
+                     % (host, port, virtual_host))
+        self._url_queues = self._url + '/queues.json'
+        self._url_delete = self._url + '/queues/%s.json'
 
         # Initialize the queue status dictionary
         self.queues = self._structure_queue_data(self._get_queue_data())
@@ -158,6 +158,16 @@ class ApolloMonitor(object):
         # Quote properly, or will this suffice?
         queue = queue.replace('%', '%25')
         requests.delete(self._url_delete % queue, auth=self.auth)
+
+    def delete(self, destination):
+        """
+        Delete a given destination (queue, topic, or dsub).
+        """
+        # mostly copied from delete_queue
+        destination = destination.replace('%', '%25')
+        empty, thing, dest = destination.split('/')
+        requests.delete(self._url + ('/%ss/%s.json' % (thing, dest)),
+                        auth=self.auth)
 
     def wait_for_update(self, n=1):
         """
