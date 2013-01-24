@@ -10,7 +10,7 @@ setup(
     platforms = ["any"],
     description = "A library for monitoring queues from an Apache Apollo message broker",
     packages=find_packages(),
-    install_requires=['gevent', 'requests >= 1.0'],
+    install_requires=['gevent', 'requests >= 1.0', 'credservice', 'syncstomp'],
     entry_points={
         'console_scripts':
         ['apollo-monitor = apollo.cli:start_monitor',
