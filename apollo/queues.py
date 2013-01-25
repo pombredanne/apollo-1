@@ -1,6 +1,6 @@
 
 import logging; logger = logging.getLogger(__name__)
-import requests
+import requests1 as requests
 from credservice.utils import call_periodic
 from gevent.event import Event
 
