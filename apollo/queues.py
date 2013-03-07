@@ -49,7 +49,7 @@ class ApolloMonitor(object):
             queues = requests.get(url, auth=self.auth).json
             if callable(queues):
                 queues = queues()
-            
+
             # Extract the new page size and row counts
             page_size = queues['page_size']
             total_rows = queues['total_rows']
@@ -170,6 +170,97 @@ class ApolloMonitor(object):
         empty, thing, dest = destination.split('/')
         requests.delete(self._url + ('/%ss/%s.json' % (thing, dest)),
                         auth=self.auth)
+
+    def wait_for_update(self, n=1):
+        """
+        Wait for n updates to be fetched and sent through event handlers
+        """
+        for it in xrange(n):
+            self.update_event.wait()
+
+
+class OneQueueApolloMonitor(object):
+    """Class for monitoring a single queue on an Apache Apollo server"""
+    def __init__(self, queue, host, virtual_host, port=61680,
+                 realm='Apollo', username='admin', password='password',
+                 update_interval_s=5):
+        """Construct a new ApolloMonitor that monitors the $virtual_host
+           virtual-host on the Apollo server at $host:$port with credentials
+           $username and $password, for the specific queue $queue. Monitor for
+           update events every $update_interval_s seconds."""
+        # Prepare a URL opener
+        self.auth = (username, password)
+        self._url = ('http://%s:%d/broker/virtual-hosts/%s'
+                     % (host, port, virtual_host))
+        self._url_queue = '%s/queues/%s.json' % (self._url, queue)
+
+        self.queue_name = queue
+        self.queue = self._get_queue_data()
+        if self.queue:
+            self.on_queue_init()
+        else:
+            self.on_queue_missing()
+
+        # Initialize the update wait event
+        self.update_event = Event()
+        self.update_event.clear()
+
+        # Run updates in a loop
+        call_periodic(update_interval_s, self.do_update)
+
+    def _get_queue_data(self):
+        """Return a dictionary representing the queue"""
+        queue = requests.get(self._url_queue, auth=self.auth)
+        if queue.status_code == 404:
+            return None
+        queue = queue.json
+        if callable(queue):
+            queue = queue()
+        return queue
+
+    def do_update(self):
+        """Download new queue data and send update notifications"""
+        new_queue = self._get_queue_data()
+        if new_queue == None:
+            self.on_queue_missing()
+        else:
+            self.on_queue_update(new_queue)
+
+        self.queue = new_queue
+        # Report update event to blockers
+        self.update_event.set()
+        self.update_event.clear()
+
+    def on_queue_init(self):
+        """MAY override: called after the ApolloMonitor is initializing and
+           loading in the initial queue status"""
+        logger.debug('on_queue_init( "%s" )' % self.queue_name)
+
+    def on_queue_update(self, new_queue):
+        """MAY override: called before the queue is updated. Overrides MUST
+           call the super of this event handler so that on_queue_empty events
+           may be fired."""
+        old_queue = self.queue
+        logger.debug('on_queue_update( "%s", ... ): %d items'
+                     % (old_queue['id'], old_queue['metrics']['queue_items']))
+
+        # if the queue is now empty, and something has been dequeued since
+        # the last queue update, then it qualifies as "this is now empty"
+        if ((new_queue['metrics']['queue_items'] == 0) and
+            (old_queue['metrics']['dequeue_item_counter'] !=
+             new_queue['metrics']['dequeue_item_counter']
+             )):
+            self.on_queue_empty(new_queue)
+
+    def on_queue_empty(self, queue):
+        """MAY override: called before a queue is update in the status
+           dictionary when the queue is newly empty."""
+        logger.debug('on_queue_empty( "%s" )' % queue['id'])
+
+    def on_queue_missing(self):
+        """MAY override: called before a queue is update in the status
+           dictionary when the queue is newly empty."""
+        logger.debug('on_queue_missing( "%s" )' % self.queue_name)
 
     def wait_for_update(self, n=1):
         """

@@ -1,1 +1,1 @@
-from .queues import ApolloMonitor
+from .queues import ApolloMonitor, OneQueueApolloMonitor
