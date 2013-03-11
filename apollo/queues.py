@@ -206,7 +206,8 @@ class OneQueueApolloMonitor(object):
         self.update_event.clear()
 
         # Run updates in a loop
-        call_periodic(update_interval_s, self.do_update)
+        self.interval = update_interval_s
+        self.start_updating()
 
     def _get_queue_data(self):
         """Return a dictionary representing the queue"""
@@ -217,6 +218,15 @@ class OneQueueApolloMonitor(object):
         if callable(queue):
             queue = queue()
         return queue
+
+    def stop_updating(self):
+        if self.updater is not None:
+            self.updater.kill()
+            self.updater = None
+
+    def start_updating(self):
+        if self.updater is None:
+            self.updater = call_periodic(self.interval, self.do_update)
 
     def do_update(self):
         """Download new queue data and send update notifications"""
