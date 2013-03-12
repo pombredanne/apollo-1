@@ -207,6 +207,7 @@ class OneQueueApolloMonitor(object):
 
         # Run updates in a loop
         self.interval = update_interval_s
+        self.updater = None
         self.start_updating()
 
     def _get_queue_data(self):
