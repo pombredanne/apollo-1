@@ -6,6 +6,7 @@ from syncstomp.managed import ManagedConnection
 from apollo.queues import OneQueueApolloMonitor, ApolloMonitor
 
 import logging; logger = logging.getLogger(__name__)
+from uuid import uuid4
 
 CALL = namedtuple('Call', 'name args kwargs')
 
@@ -61,7 +62,7 @@ def setup():
     port = 61680
     virtual_host = 'broker_lumi'
     MONITOR_ARGS = dict(host=host, port=port, virtual_host=virtual_host)
-    QUEUE = 'test.apollo.onemonitor.' + ENV_USER
+    QUEUE = 'test.apollo.onemonitor.%s.%s' % (ENV_USER, uuid4())
 
     STOMP = ManagedConnection(host_and_ports = [(host, 61613)], version = 1.1)
     STOMP.start()

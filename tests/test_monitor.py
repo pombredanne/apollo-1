@@ -7,6 +7,7 @@ from syncstomp.conversation import SynchronousStomp
 from apollo.queues import ApolloMonitor
 
 import logging; logger = logging.getLogger(__name__)
+from uuid import uuid4
 
 CALL = namedtuple('Call', 'name args kwargs')
 
@@ -73,7 +74,7 @@ def setup():
     STOMP.start()
     STOMP.connect(wait = True)
     
-    QUEUE = 'test.apollo.monitor.' + ENV_USER
+    QUEUE = 'test.apollo.monitor.%s.%s' % (ENV_USER, uuid4())
 
 def test_init():
     # check that on_queue_init was called for all the queues
