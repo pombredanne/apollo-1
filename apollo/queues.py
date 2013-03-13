@@ -252,6 +252,8 @@ class OneQueueApolloMonitor(object):
            call the super of this event handler so that on_queue_empty events
            may be fired."""
         old_queue = self.queue
+        if old_queue is None:
+            return
         logger.debug('on_queue_update( "%s", ... ): %d items'
                      % (old_queue['id'], old_queue['metrics']['queue_items']))
 
