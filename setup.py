@@ -14,5 +14,6 @@ setup(
     entry_points={
         'console_scripts':
         ['apollo-monitor = apollo.cli:start_monitor',
+         'apollo-purge-unused-queues = apollo.cli:purge_queues',
         ]},
 )
