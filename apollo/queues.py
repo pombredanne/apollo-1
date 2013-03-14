@@ -1,6 +1,6 @@
 
 import logging; logger = logging.getLogger(__name__)
-import requests1 as requests
+from requests1 import Session
 from credservice.utils import call_periodic
 from gevent.event import Event
 
@@ -22,6 +22,7 @@ class ApolloMonitor(object):
                      % (host, port, virtual_host))
         self._url_queues = self._url + '/queues.json'
         self._url_delete = self._url + '/queues/%s.json'
+        self._s = Session()
 
         # Initialize the queue status dictionary
         self.queues = self._structure_queue_data(self._get_queue_data())
@@ -46,7 +47,7 @@ class ApolloMonitor(object):
             url = self._url_queues + ('?ps=%d' % page_size)
 
             # Get the JSON-formatted data
-            queues = requests.get(url, auth=self.auth).json
+            queues = self._s.get(url, auth=self.auth).json
             if callable(queues):
                 queues = queues()
 
@@ -159,7 +160,7 @@ class ApolloMonitor(object):
         """
         # Quote properly, or will this suffice?
         queue = queue.replace('%', '%25')
-        requests.delete(self._url_delete % queue, auth=self.auth)
+        self._s.delete(self._url_delete % queue, auth=self.auth)
 
     def delete(self, destination):
         """
@@ -168,7 +169,7 @@ class ApolloMonitor(object):
         # mostly copied from delete_queue
         destination = destination.replace('%', '%25')
         empty, thing, dest = destination.split('/')
-        requests.delete(self._url + ('/%ss/%s.json' % (thing, dest)),
+        self._s.delete(self._url + ('/%ss/%s.json' % (thing, dest)),
                         auth=self.auth)
 
     def wait_for_update(self, n=1):
@@ -193,6 +194,7 @@ class OneQueueApolloMonitor(object):
         self._url = ('http://%s:%d/broker/virtual-hosts/%s'
                      % (host, port, virtual_host))
         self._url_queue = '%s/queues/%s.json' % (self._url, queue)
+        self._s = Session()
 
         self.queue_name = queue
         self.queue = self._get_queue_data()
@@ -212,7 +214,7 @@ class OneQueueApolloMonitor(object):
 
     def _get_queue_data(self):
         """Return a dictionary representing the queue"""
-        queue = requests.get(self._url_queue, auth=self.auth)
+        queue = self._s.get(self._url_queue, auth=self.auth)
         if queue.status_code == 404:
             return None
         queue = queue.json
