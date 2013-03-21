@@ -15,7 +15,7 @@ class ApolloMonitor(object):
         """Construct a new ApolloMonitor that monitors the $virtual_host
            virtual-host on the Apollo server at $host:$port with credentials
            $username and $password.  Monitor for update events every
-           $update_interval_s seconds."""
+           $update_interval_s seconds (or, if seconds is None, not at all)."""
         # Prepare a URL opener
         self.auth = (username, password)
         self._url = ('http://%s:%d/broker/virtual-hosts/%s'
@@ -34,7 +34,8 @@ class ApolloMonitor(object):
         self.update_event.clear()
 
         # Run updates in a loop
-        call_periodic(update_interval_s, self.do_update)
+        if update_interval_s is not None:
+            call_periodic(update_interval_s, self.do_update)
 
     def _get_queue_data(self):
         """Return a parsed structure containing the current queue data"""
