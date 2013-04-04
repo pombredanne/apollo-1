@@ -74,7 +74,8 @@ def purge_queues():
     parser = ArgumentParser(version='Apollo Queue Purger 0.1')
     add_argparse_group(parser)
     parser.add_argument('-p', '--pattern', default='.worker',
-                        help='Queue destination substring to match for purge candidates')
+                        help='Queue destination substring to match for purge '
+                             'candidates (default: %(default)s)')
     parser.set_defaults()
     args = parser.parse_args()
     monitor = monitor_from_args(args)
