@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'gevent',
-        'requests-transition',
+        'requests >= 1.0',
         'credservice',
         'syncstomp >= 0.5.5'
         ],

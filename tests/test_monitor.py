@@ -113,8 +113,8 @@ def test_queue_changes():
     MONITOR._detect_queue_changes(MONITOR._structure_queue_data(new_data))
     relevant_calls = [c for c in MONITOR._history if c.args[0]['id']==QUEUE]
     # check that the queue was created and deleted
-    assert any(c.name == 'on_queue_new' for c in relevant_calls)
-    assert any(c.name == 'on_queue_delete' for c in relevant_calls)
+    assert any(c.name == 'on_queue_new' for c in relevant_calls), relevant_calls
+    assert any(c.name == 'on_queue_delete' for c in relevant_calls), relevant_calls
 
     # TODO: figure out what should go in the remainder of this test
 
